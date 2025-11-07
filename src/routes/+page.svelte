@@ -1,18 +1,23 @@
 <script lang="ts">
-    import { giftMatchingSystem, type overlap } from "$lib";
+    import { giftMatchingSystem, parseCSV, rulesMessage, type overlap } from "$lib";
     import Button from "$lib/components/ui/button/button.svelte";
     import * as Select from "$lib/components/ui/select/index";
     import { onMount } from "svelte";
     
-    let participants:string[] = $state([])
-    let rules: overlap[]
-    let user = $state("")
-    let dodge: string[] = $state([])
-    let draw = $state("")
+    let participants:string[] = $state([]);
+    let rules: overlap[];
+    let user = $state("");
+    let dodge: string = $state("");
+    let draw = $state("");
+    let noUserFound = $state(false);
 
     const triggerUser = $derived(
         participants.find((f) => f === user)?? ""
     );
+
+    const triggerDodge = $derived(
+        participants.find((p)=>p === dodge) ?? ""
+    )
     
     onMount(async () => {
         const res = await fetch('/data/participants.csv');
@@ -23,57 +28,70 @@
         }
         console.log(rules);
     });
-    
-    function parseCSV(csv: string) : overlap[]{
-        const lines = csv.trim().split('\n');
-        const headers = lines.shift()?.split(',') ?? [];
-        
-        return lines.map(line => {
-            const [user, rawBlacklist] = line.split(',');
-            const blackList = 
-                rawBlacklist ? rawBlacklist.replace(/"/g, '').split(',').map(s => s.trim()).filter(Boolean) : [];
-                return { user: user.trim(), blackList };
-            }
-        );
-    }
 
     let dodgeSelected = $derived.by(
         ()=> dodge.length === 0 ? "" : "Hai scelto di evitare qualcuno"
     );
-    $inspect(dodge.length)
+    // $inspect(dodge.length)
 
     let alreadyDrawn = $state(false)
 
-    function handleClick(){
+    async function handleClick(){
         if (user === ""){
+            noUserFound = true;
             return
         }; 
+
         let selectedBlackList = rules.find((u)=> u.user === user)?.blackList ?? [];
 
+        
+        const url = `/api/`;
+
+        //creazione di houseRules per consentire la corretta estrazione
         const houseRules = {
             user: user,
-            blackList: [...selectedBlackList,...dodge]
+            blackList: [...selectedBlackList,dodge]
         }
-        //recuperare da firestore quelli già presi
-        const notAvailables:string[] = [];
-        //chiamata all'algoritmo per scegliere
-        draw = giftMatchingSystem(houseRules,participants,notAvailables)
-        //scrivere su firestore 
+
+        try {
+            const response = await fetch('/api/',{
+				method:'PUT',
+				headers:{
+					'Content-Type':'application/json'
+				},
+				body:JSON.stringify({
+					rules: houseRules
+				})
+				
+			});
+
+            const data = await response.json();
+            if(!data.success){
+                console.error("put failure");
+            }else{
+                console.log("put success");
+                draw = data.drawn
+            }
+            
+        } catch (err) {
+            console.error("Errore nella put:", err);
+        }
         //settaggio variabili
         alreadyDrawn = true
         return 
     }
 
-    let response = $state("");
     $inspect(draw)
+
+
 </script>
 
 
 <div class="flex flex-col items-center justify-center gap-5">
     <h1>Secret Santa</h1>
     <p>
-        Messaggio Regole
-    </p>
+        {@html rulesMessage.replace(/\n/g, '<br>')}
+    </p>    
     <div class="flex items-center gap-5">
         Chi sei?
         <Select.Root type="single" bind:value={user}>
@@ -91,9 +109,9 @@
 
      <div class="flex items-center gap-5">
         Devi Evitare Qualcuno?
-        <Select.Root type="multiple" bind:value={dodge}>
+        <Select.Root type="single" bind:value={dodge}>
             <Select.Trigger> 
-               {dodgeSelected}
+               {triggerDodge}
             </Select.Trigger>
             <Select.Content> 
                 

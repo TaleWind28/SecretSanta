@@ -33,6 +33,8 @@
 		"vite": "^7.1.10"
 	},
 	"dependencies": {
-		"@vercel/blob": "^2.0.0"
+		"@vercel/blob": "^2.0.0",
+		"firebase": "^12.5.0",
+		"firebase-admin": "^13.6.0"
 	}
 }
