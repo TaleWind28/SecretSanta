@@ -4,19 +4,16 @@ export type overlap = {
     blackList:string[]
 }
 
-
 function respectedRules(rules: overlap, extraction: string) {
   if (rules.user === extraction) return false;
   // usa includes (o un Set) per controllare la blacklist
   return !rules.blackList.includes(extraction);
 }
 
-
-
-export function giftMatchingSystem(rules: overlap, participants: string[]) {
+export function giftMatchingSystem(rules: overlap, participants: string[], notAvailables: string[]) {
   // Filtra prima i candidati validi: niente self e niente blacklist
   const candidates = participants.filter(
-    (p) => p !== rules.user && !rules.blackList.includes(p)
+    (p) => p !== rules.user && !rules.blackList.includes(p) && !notAvailables.includes(p)
   );
 
   if (candidates.length === 0) {

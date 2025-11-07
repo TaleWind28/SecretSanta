@@ -23,7 +23,7 @@
         }
         console.log(rules);
     });
-
+    
     function parseCSV(csv: string) : overlap[]{
         const lines = csv.trim().split('\n');
         const headers = lines.shift()?.split(',') ?? [];
@@ -54,10 +54,11 @@
             user: user,
             blackList: [...selectedBlackList,...dodge]
         }
-
-        // console.log(houseRules)
+        //recuperare da firestore quelli già presi
+        const notAvailables:string[] = [];
         //chiamata all'algoritmo per scegliere
-        draw = giftMatchingSystem(houseRules,participants)
+        draw = giftMatchingSystem(houseRules,participants,notAvailables)
+        //scrivere su firestore 
         //settaggio variabili
         alreadyDrawn = true
         return 
