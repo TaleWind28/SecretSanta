@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { giftMatchingSystem, parseCSV, rulesMessage, type overlap } from "$lib";
+    import { parseCSV, rulesMessage, type overlap } from "$lib";
     import Button from "$lib/components/ui/button/button.svelte";
     import * as Select from "$lib/components/ui/select/index";
     import { onMount } from "svelte";
@@ -10,15 +10,12 @@
     let dodge: string = $state("");
     let draw = $state("");
     let noUserFound = $state(false);
+    let alreadyDrawn = $state(false)
 
     const triggerUser = $derived(
         participants.find((f) => f === user)?? ""
     );
 
-    const triggerDodge = $derived(
-        participants.find((p)=>p === dodge) ?? ""
-    )
-    
     onMount(async () => {
         const res = await fetch('/data/participants.csv');
         const text = await res.text();
@@ -29,13 +26,6 @@
         console.log(rules);
     });
 
-    let dodgeSelected = $derived.by(
-        ()=> dodge.length === 0 ? "" : "Hai scelto di evitare qualcuno"
-    );
-    // $inspect(dodge.length)
-
-    let alreadyDrawn = $state(false)
-
     async function handleClick(){
         if (user === ""){
             noUserFound = true;
@@ -43,9 +33,6 @@
         }; 
 
         let selectedBlackList = rules.find((u)=> u.user === user)?.blackList ?? [];
-
-        
-        const url = `/api/`;
 
         //creazione di houseRules per consentire la corretta estrazione
         const houseRules = {
@@ -89,7 +76,7 @@
 
 <div class="flex flex-col items-center justify-center gap-5">
     <h1>Secret Santa</h1>
-    <p>
+    <p class="flex flex-col items-center p-10">
         {@html rulesMessage.replace(/\n/g, '<br>')}
     </p>    
     <div class="flex items-center gap-5">
@@ -107,26 +94,9 @@
         </Select.Root>
     </div>
 
-     <div class="flex items-center gap-5">
-        Devi Evitare Qualcuno?
-        <Select.Root type="single" bind:value={dodge}>
-            <Select.Trigger> 
-               {triggerDodge}
-            </Select.Trigger>
-            <Select.Content> 
-                
-                {#each participants as person}
-                    <Select.Item value={person}>{person}</Select.Item>
-                {/each}
-            </Select.Content>
-        </Select.Root>
-
-        
-    </div>
-
     <Button disabled = {alreadyDrawn} onclick={handleClick}> 
         Estrai
-    </Button>   
+    </Button>
     {#if alreadyDrawn}
         <p> 
             Sei il babbo natale segreto di {draw}
