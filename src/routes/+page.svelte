@@ -7,7 +7,6 @@
     let participants:string[] = $state([]);
     let rules: overlap[];
     let user = $state("");
-    let dodge: string = $state("");
     let draw = $state("");
     let noUserFound = $state(false);
     let alreadyDrawn = $state(false)
@@ -37,7 +36,7 @@
         //creazione di houseRules per consentire la corretta estrazione
         const houseRules = {
             user: user,
-            blackList: [...selectedBlackList,dodge]
+            blackList: [...selectedBlackList]
         }
 
         try {
