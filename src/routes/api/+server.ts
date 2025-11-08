@@ -36,7 +36,7 @@ export const PUT: RequestHandler = async ({request,fetch}) => {
     const drawnRef = db.collection('contestants').doc('drawn')
     const drawnDoc = await drawnRef.get();
     const drawnData = drawnDoc.data();
-    if (drawnData === undefined)return;
+    if (drawnData === undefined)return json({success:false});
     const [key,values] = Object.entries(drawnData)[0];
     //recuperare da firestore quelli già estratti
     let notAvailables:string[] = values;
@@ -50,15 +50,17 @@ export const PUT: RequestHandler = async ({request,fetch}) => {
         //estraggo un nome
         newDraw = giftMatchingSystem(rules,participants);
     }catch(Error){
-        console.log(Error);
-        return;
+      console.log(Error);
+      return json({success:false});
     }
     
 
     console.log(newDraw,"drawn");
  
     //modifico la collezione
-    await drawnRef.set({ bs1: FieldValue.arrayUnion(newDraw.trim()) }, { merge: true });
+    await drawnRef.set({ [key]: FieldValue.arrayUnion(newDraw.trim()) }, { merge: true });
+
+    //aggiungere al firestore il salvataggio delle estrazioni per recuperare i dati
 
     return json({ 
       success: true, 

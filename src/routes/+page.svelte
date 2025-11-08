@@ -2,6 +2,7 @@
     import { parseCSV, rulesMessage, type overlap } from "$lib";
     import Button from "$lib/components/ui/button/button.svelte";
     import * as Select from "$lib/components/ui/select/index";
+    import * as Dialog from "$lib/components/ui/dialog/index";
     import { onMount } from "svelte";
     
     let participants:string[] = $state([]);
@@ -9,7 +10,8 @@
     let user = $state("");
     let draw = $state("");
     let noUserFound = $state(false);
-    let alreadyDrawn = $state(false)
+    let alreadyDrawn = $state(false);
+    let showDrawDialog = $state(false);
 
     const triggerUser = $derived(
         participants.find((f) => f === user)?? ""
@@ -64,6 +66,7 @@
         }
         //settaggio variabili
         alreadyDrawn = true
+        showDrawDialog = true
         return 
     }
 
@@ -102,6 +105,17 @@
         </p>
     {/if}
 </div>
+
+<Dialog.Root bind:open={showDrawDialog}>
+    <Dialog.Content>
+        <Dialog.Header>
+        <Dialog.Title>Sei il Babbo Natale Segreto di </Dialog.Title>
+        <Dialog.Description>
+            <p class=" text-5xl">{draw}!</p>
+        </Dialog.Description>
+        </Dialog.Header>
+    </Dialog.Content>
+</Dialog.Root>
     
 
 
