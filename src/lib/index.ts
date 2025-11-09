@@ -37,11 +37,10 @@ export function parseCSV(csv: string) : overlap[]{
   const headers = lines.shift()?.split(',') ?? [];
   
   return lines.map(line => {
-      const [user, rawBlacklist] = line.split(',');
-      const blackList = 
-          rawBlacklist ? rawBlacklist.replace(/"/g, '').split(',').map(s => s.trim()).filter(Boolean) : [];
-          return { user: user.trim(), blackList };
-      }
+      const [user, rawBlacklist,superSecretCode] = line.split(',');
+      const blackList = rawBlacklist ? rawBlacklist.replace(/"/g, '').split(',').map(s => s.trim()).filter(Boolean) : [];
+      return { user: user.trim(), blackList,superSecretCode };
+    }
   );
 }
 

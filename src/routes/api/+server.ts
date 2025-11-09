@@ -1,20 +1,20 @@
 import { giftMatchingSystem, parseCSV } from "$lib";
 import { db } from "$lib/firebase";
 import { error, json, type RequestHandler } from "@sveltejs/kit";
-import { FieldValue } from "firebase-admin/firestore";
 
-export const GET: RequestHandler = async () => {
-    const data = await db.collection("contestants").get()
-   
-    if (data.empty)return json({success:false});
-    let drawnPartecipants:any[] = [];
-    data.forEach((doc:any)=> {
-        const arr = doc.data();
-        let [key,values] = Object.entries(arr)[0];
-        drawnPartecipants.push(values);
-        
-    })
-    return json({success:true,drawnPartecipants:drawnPartecipants})
+export const GET: RequestHandler = async ({url}) => {
+  const ssc = url.searchParams.get('ssc');
+  console.log('superSecretCode:', ssc);
+
+  const snapshot = await db.collection('contestants').get();
+  let receiver = "";
+  snapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.superSecretCode === ssc) {
+        receiver = data.giftTo;
+      }
+  });
+  return json({success:true,receiver:receiver})
 }
 
 export const PUT: RequestHandler = async ({request,fetch}) => {
@@ -23,23 +23,35 @@ export const PUT: RequestHandler = async ({request,fetch}) => {
     const data = await request.json();
     const rules = data.rules;
 
+    const userRef = db.collection('contestants').doc(rules.user);
+    const userData = (await userRef.get()).data();
+    if (userData === undefined)return json({success:false});
+    if (userData.giftTo!== "" ){
+      return json({success:false,message:"Estrazione già avvenuta"});
+    }
     //recupero i partecipanti
     const res = await fetch('/data/participants.csv');
     const text = await res.text();
     let ruling = parseCSV(text);
-    const participants = [];    
+    const participants = [];
     for (let entry of ruling){
-        participants.push(entry.user)
+      participants.push(entry.user)
     }
 
     //ottengo la reference al documento drawn
-    const drawnRef = db.collection('contestants').doc('drawn')
-    const drawnDoc = await drawnRef.get();
-    const drawnData = drawnDoc.data();
-    if (drawnData === undefined)return json({success:false});
-    const [key,values] = Object.entries(drawnData)[0];
+    const constestantsRef = db.collection('contestants')
+
+    const snapshot = await db.collection('contestants').get();
+    const assigned: any[] = [];
+
+    snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.giftFrom && data.giftFrom.trim() !== "") {
+            assigned.push(doc.id);
+        }
+    });
     //recuperare da firestore quelli già estratti
-    let notAvailables:string[] = values;
+    let notAvailables:string[] = assigned;
 
     console.log(notAvailables,"data");
     //espando le regole
@@ -56,12 +68,11 @@ export const PUT: RequestHandler = async ({request,fetch}) => {
     
 
     console.log(newDraw,"drawn");
- 
-    //modifico la collezione
-    await drawnRef.set({ [key]: FieldValue.arrayUnion(newDraw.trim()) }, { merge: true });
-
+    await constestantsRef.doc(newDraw).update({giftFrom:rules.user});
+    await constestantsRef.doc(rules.user).update({giftTo:newDraw});
     //aggiungere al firestore il salvataggio delle estrazioni per recuperare i dati
-
+    
+    
     return json({ 
       success: true, 
       message: 'Estrazione Registrata con successo!',

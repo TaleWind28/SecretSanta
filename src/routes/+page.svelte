@@ -4,13 +4,17 @@
     import * as Select from "$lib/components/ui/select/index";
     import * as Dialog from "$lib/components/ui/dialog/index";
     import { onMount } from "svelte";
+  import Input from "$lib/components/ui/input/input.svelte";
     
     let participants:string[] = $state([]);
     let rules: overlap[];
     let user = $state("");
     let draw = $state("");
+    let superSecretCode = $state("");
     let noUserFound = $state(false);
+    let noCode = $state(false);
     let alreadyDrawn = $state(false);
+    let previouslyDrawn = $state(false);
     let showDrawDialog = $state(false);
 
     const triggerUser = $derived(
@@ -55,6 +59,11 @@
 
             const data = await response.json();
             if(!data.success){
+                if (data.message === "Estrazione già avvenuta"){
+                    previouslyDrawn = true;
+                    console.error("hai già estratto!");
+                    return;
+                }
                 console.error("put failure");
             }else{
                 console.log("put success");
@@ -65,11 +74,47 @@
             console.error("Errore nella put:", err);
         }
         //settaggio variabili
-        alreadyDrawn = true
-        showDrawDialog = true
+        alreadyDrawn = true;
+        showDrawDialog = true;
+        noUserFound = false;
         return 
     }
 
+
+    async function handleRetrieval(){
+        
+        if (superSecretCode === ""){
+            noCode = true;
+            return
+        }; 
+
+
+        try {
+            const response = await fetch(`/api?ssc=${encodeURIComponent(superSecretCode)}`,{
+				method:'GET',
+				headers:{
+					'Content-Type':'application/json'
+				},
+			});
+
+            const data = await response.json();
+            if(!data.success){
+                
+                console.error("get failure");
+            }else{
+                console.log("get success");
+                draw = data.receiver;
+            }
+            
+        } catch (err) {
+            console.error("Errore nella put:", err);
+        }
+
+        previouslyDrawn = false;
+        alreadyDrawn = true;
+        noCode = false;
+        return;
+    }
     $inspect(draw)
 
 
@@ -103,7 +148,14 @@
         <p> 
             Sei il babbo natale segreto di {draw}
         </p>
+    {:else if previouslyDrawn}
+        <p>
+            Inserisci il tuo codice per recuperare la persona a cui devi fare un regalo:
+            <Input bind:value={superSecretCode}/>
+            <Button onclick={handleRetrieval}>Recupera il Destinatario</Button>
+        </p>
     {/if}
+    
 </div>
 
 <Dialog.Root bind:open={showDrawDialog}>

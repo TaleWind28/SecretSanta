@@ -1,19 +1,21 @@
-user,blacklist
-Matteo,"Alessia"
-Ferra,""
-Dario,"Giulia"
-Marco,"Chiara Bondi"
-Chiara Bondi,"Marco"
-Martina,""
-Giorgia,"Filippo"
-Kiki,"Luca"
-Luca,"Kiki"
-Dalle,""
-Alessia,"Matteo"
-Giulia,"Dario"
-Filippo,"Giorgia"
-Puccio,""
-Tommaso,""
-Mattia,""
-Gaia,""
-Bonny,""
+user,blacklist,supersecretcode
+Matteo,"Alessia",admin
+Ferra,"",La-Grande-L
+Dario,"Giulia",Master
+Marco,"Chiara Bondi",Panettiere
+Chiara Bondi,"Marco",Zeno
+Martina,"",Pisa-Firenze
+Giorgia,"Filippo",Tapioca
+Kiki,"Luca",Lombardi
+Luca,"Kiki",Trickstar
+Dalle,"",Redivivo
+Alessia,"Matteo",Jigglypuff
+Giulia,"Dario",Snack
+Filippo,"Giorgia",Gollum
+Puccio,"",Pigliamosche
+Tommaso,"",Lapalissiano
+Mattia,"",Viridi
+Gaia,"",Napoli
+Bonny,"",Sailor-Moon
+Chiara Cianciosi,"",Cenc
+Martu,"",Ultra
