@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { parseCSV, rulesMessage, type overlap } from "$lib";
+    import { instructions, parseCSV, rulesMessage, type overlap } from "$lib";
     import Button from "$lib/components/ui/button/button.svelte";
     import * as Select from "$lib/components/ui/select/index";
     import * as Dialog from "$lib/components/ui/dialog/index";
@@ -112,6 +112,7 @@
 
         previouslyDrawn = false;
         alreadyDrawn = true;
+        showDrawDialog = true;
         noCode = false;
         return;
     }
@@ -123,9 +124,12 @@
 
 <div class="flex flex-col items-center justify-center gap-5">
     <h1>Secret Santa</h1>
-    <p class="flex flex-col items-center p-10">
+    <h2 class="flex flex-col items-center p-10">
+        {@html instructions}
+        <br><br>            
+        <p>REGOLE BABBO NATALE SEGRETO</p>
         {@html rulesMessage.replace(/\n/g, '<br>')}
-    </p>    
+    </h2>    
     <div class="flex items-center gap-5">
         Chi sei?
         <Select.Root type="single" bind:value={user}>
