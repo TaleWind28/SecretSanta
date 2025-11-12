@@ -4,7 +4,7 @@
     import * as Select from "$lib/components/ui/select/index";
     import * as Dialog from "$lib/components/ui/dialog/index";
     import { onMount } from "svelte";
-  import Input from "$lib/components/ui/input/input.svelte";
+    import Input from "$lib/components/ui/input/input.svelte";
     
     let participants:string[] = $state([]);
     let rules: overlap[];
@@ -16,6 +16,8 @@
     let alreadyDrawn = $state(false);
     let previouslyDrawn = $state(false);
     let showDrawDialog = $state(false);
+    let fetchFailure = $state(false);
+    let fetchErrorMessage = $state("")
 
     const triggerUser = $derived(
         participants.find((f) => f === user)?? ""
@@ -88,9 +90,14 @@
             return
         }; 
 
+        if (user == ""){
+            noUserFound = true;
+            return;
+        }
+
 
         try {
-            const response = await fetch(`/api?ssc=${encodeURIComponent(superSecretCode)}`,{
+            const response = await fetch(`/api?ssc=${encodeURIComponent(superSecretCode)}&user=${encodeURIComponent(user)}`,{
 				method:'GET',
 				headers:{
 					'Content-Type':'application/json'
@@ -99,8 +106,10 @@
 
             const data = await response.json();
             if(!data.success){
-                
                 console.error("get failure");
+                fetchFailure = true;
+                fetchErrorMessage = data.message;
+                return;
             }else{
                 console.log("get success");
                 draw = data.receiver;
@@ -172,9 +181,14 @@
         </Dialog.Header>
     </Dialog.Content>
 </Dialog.Root>
-    
 
-
-
-
-
+<Dialog.Root bind:open={fetchFailure}>
+    <Dialog.Content>
+        <Dialog.Header>
+        <Dialog.Title>Errore nel recupero del Destinatario del Regalo</Dialog.Title>
+        <Dialog.Description>
+            <p class=" text-5xl">{fetchErrorMessage}</p>
+        </Dialog.Description>
+        </Dialog.Header>
+    </Dialog.Content>
+</Dialog.Root>

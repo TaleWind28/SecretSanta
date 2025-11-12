@@ -4,16 +4,27 @@ import { error, json, type RequestHandler } from "@sveltejs/kit";
 
 export const GET: RequestHandler = async ({url}) => {
   const ssc = url.searchParams.get('ssc');
-  console.log('superSecretCode:', ssc);
+  const user = url.searchParams.get('user');
+  console.log('superSecretCode:', ssc,'user:',user);
 
   const snapshot = await db.collection('contestants').get();
   let receiver = "";
   snapshot.forEach((doc) => {
       const data = doc.data();
+      
       if (data.superSecretCode === ssc) {
-        receiver = data.giftTo;
+        if(doc.id != user){
+          receiver = "Devi usare il TUO codice"
+          return
+        }else{
+          receiver = data.giftTo;
+          return
+        }
       }
   });
+  if (receiver === "Devi usare il TUO codice")return json({success:false,message:"Devi usare il tuo codice"})
+  if (receiver === "")return json({success:false,message:"Il codice inserito non esiste"})
+  console.log(receiver)
   return json({success:true,receiver:receiver})
 }
 
