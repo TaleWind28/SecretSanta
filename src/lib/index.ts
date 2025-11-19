@@ -12,10 +12,11 @@ function respectedRules(rules: overlap, extraction: string) {
 
 export function giftMatchingSystem(rules: overlap, participants: string[]) {
   // Filtra prima i candidati validi: niente self e niente blacklist
+  console.log(participants,"pp")
   const candidates = participants.filter(
     (p) => p !== rules.user && !rules.blackList.includes(p)
   );
-
+  console.log(candidates)
   if (candidates.length === 0) {
     // gestisci come preferisci: throw, null, undefined, ecc.
     throw new Error("Nessun candidato valido disponibile");
